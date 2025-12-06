@@ -9,8 +9,13 @@
 // - Format: Character::Character(params) : member1(value1), member2(value2) { }
 //
 Character::Character(const std::string& name, int hp, int attack, int defense)
-    : name(name), max_hp(hp), current_hp(hp), attack(attack), 
-      defense(defense), alive(true) {
+    :   name(name), 
+        max_hp(hp),
+        current_hp(hp), 
+        attack(attack), 
+        defense(defense), 
+        alive(true) 
+{
 }
 
 
@@ -20,7 +25,8 @@ Character::Character(const std::string& name, int hp, int attack, int defense)
 // - You can add a debug print statement if helpful for tracking object lifetime
 // - Example: std::cout << "Character " << name << " destroyed" << std::endl;
 //
-Character::~Character() {
+Character::~Character() 
+{
     
 }
 
@@ -30,10 +36,12 @@ Character::~Character() {
 // - Return attack damage plus a random bonus (0-4)
 // - Use: rand() % 5 to get random number from 0 to 4
 //
-int Character::calculateDamage() const {
+int Character::calculateDamage() const 
+{
     // TODO: Calculate and return damage
     // Base damage is attack stat plus small random bonus
-    return 0;  // REPLACE THIS
+    return attack + rand()%5; 
+
 }
 
 
@@ -46,14 +54,28 @@ int Character::calculateDamage() const {
 // - Print damage message showing damage taken and remaining HP
 // - Format: "Name takes X damage! (Y/Z HP)"
 //
-void Character::takeDamage(int damage) {
+void Character::takeDamage(int damage) 
+{
     // TODO: Calculate actual damage after defense
+    int actual_damage = damage - defense;
+    if(actual_damage<0)
+    {
+        actual_damage = 0;
+    }
     
     // TODO: Apply damage to current_hp
-    
+    current_hp -= actual_damage;
+
     // TODO: Check if character died (hp <= 0)
+    if(current_hp<=0)
+    {
+        current_hp = 0;
+        alive = false;
+    }
     
     // TODO: Print damage message with remaining HP
+    std::cout << name << " takes " << actual_damage 
+    << " damage! (" << current_hp << "/" << max_hp << " HP)" << std::endl;
 }
 
 
@@ -64,12 +86,20 @@ void Character::takeDamage(int damage) {
 // - Print healing message showing amount healed and current HP
 // - Format: "Name heals X HP! (Y/Z HP)"
 //
-void Character::heal(int amount) {
+void Character::heal(int amount) 
+{
     // TODO: Add amount to current_hp
+    current_hp += amount;
     
     // TODO: Cap at max_hp
+    if(current_hp>max_hp)
+    {
+        current_hp = max_hp;
+    }
     
     // TODO: Print healing message
+    std::cout << name << " heals " << amount 
+    << " HP! (" << current_hp << "/" << max_hp << " HP)" << std::endl;
 }
 
 
@@ -79,8 +109,12 @@ void Character::heal(int amount) {
 // - Format: "Name [HP: current/max]"
 // - This is the default implementation - derived classes can override
 //
-void Character::displayStats() const {
+void Character::displayStats() const 
+{
     // TODO: Print character stats
+    std::cout << name << " [HP: " 
+    << current_hp << "/" 
+    << max_hp << "]" << std::endl;
 }
 
 
@@ -90,6 +124,10 @@ void Character::displayStats() const {
 // - Don't add newline at the end (combat system will add it)
 // - Format: "Name [HP: current/max]"
 //
-void Character::displayStatus() const {
+void Character::displayStatus() const 
+{
     // TODO: Print brief status
+    std::cout << name << " [HP: " 
+    << current_hp << "/" 
+    << max_hp << "]";
 }
