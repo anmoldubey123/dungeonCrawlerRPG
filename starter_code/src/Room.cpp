@@ -10,8 +10,21 @@ Room::Room(const std::string& name, const std::string& description)
 
 // TODO: Implement Room destructor
 Room::~Room() {
-    // TODO: Clean up monster and items
+    // Delete monster if present
+    if (monster != NULL) {
+        delete monster;
+        monster = NULL;
+    }
+
+    // Delete all items on the ground
+    for (std::size_t i = 0; i < items.size(); i++) {
+        delete items[i];
+    }
+    items.clear();
+
+    // DO NOT delete exits — Game owns the rooms!!
 }
+
 
 
 // TODO: Implement display
@@ -33,8 +46,33 @@ Room::~Room() {
 //   ========================================
 //
 void Room::display() const {
-    // TODO: Display room information
+    std::cout << "========================================" << std::endl;
+    std::cout << name << std::endl;
+    std::cout << "========================================" << std::endl;
+
+    std::cout << description << std::endl << std::endl;
+
+    // Monster present?
+    if (monster != NULL && monster->isAlive()) {
+        std::cout << "A " << monster->getName() << " blocks your path!" << std::endl;
+        std::cout << std::endl;
+    }
+
+    // Items present?
+    if (!items.empty()) {
+        std::cout << "Items here:" << std::endl;
+        for (std::size_t i = 0; i < items.size(); i++) {
+            std::cout << "  - " << items[i]->getName() << std::endl;
+        }
+        std::cout << std::endl;
+    }
+
+    // Exits
+    displayExits();
+
+    std::cout << "========================================" << std::endl;
 }
+
 
 
 // TODO: Implement displayExits
@@ -45,8 +83,24 @@ void Room::display() const {
 // - Example output: "Exits: north, south, east"
 //
 void Room::displayExits() const {
-    // TODO: Display available exits
+    std::cout << "Exits: ";
+
+    if (exits.empty()) {
+        std::cout << "none";
+    } else {
+        bool first = true;
+        for (std::map<std::string, Room*>::const_iterator it = exits.begin();
+             it != exits.end(); ++it)
+        {
+            if (!first) std::cout << ", ";
+            std::cout << it->first;
+            first = false;
+        }
+    }
+
+    std::cout << std::endl;
 }
+
 
 
 // TODO: Implement addExit
@@ -55,8 +109,13 @@ void Room::displayExits() const {
 // - Add to exits map: exits[direction] = room
 //
 void Room::addExit(const std::string& direction, Room* room) {
-    // TODO: Add exit to map
+    if (room == NULL) {
+        std::cout << "Cannot add exit to NULL room!" << std::endl;
+        return;
+    }
+    exits[direction] = room;
 }
+
 
 
 // TODO: Implement getExit
@@ -66,18 +125,22 @@ void Room::addExit(const std::string& direction, Room* room) {
 // - If not found, return NULL
 //
 Room* Room::getExit(const std::string& direction) const {
-    // TODO: Look up and return exit
-    return NULL;  // REPLACE THIS
+    std::map<std::string, Room*>::const_iterator it = exits.find(direction);
+    if (it != exits.end()) {
+        return it->second;
+    }
+    return NULL;
 }
+
 
 
 // TODO: Implement hasExit
 // HINTS:
 // - Check if direction exists in exits map
 bool Room::hasExit(const std::string& direction) const {
-    // TODO: Check if exit exists
-    return false;  // REPLACE THIS
+    return exits.find(direction) != exits.end();
 }
+
 
 
 // TODO: Implement clearMonster
@@ -86,8 +149,12 @@ bool Room::hasExit(const std::string& direction) const {
 // - Set monster pointer to NULL
 //
 void Room::clearMonster() {
-    // TODO: Delete and clear monster
+    if (monster != NULL) {
+        delete monster;
+        monster = NULL;
+    }
 }
+
 
 
 // TODO: Implement addItem
@@ -96,8 +163,13 @@ void Room::clearMonster() {
 // - Add to items vector using push_back()
 //
 void Room::addItem(Item* item) {
-    // TODO: Add item to room
+    if (item == NULL) {
+        std::cout << "Cannot add NULL item to room." << std::endl;
+        return;
+    }
+    items.push_back(item);
 }
+
 
 
 // TODO: Implement removeItem
@@ -106,8 +178,28 @@ void Room::addItem(Item* item) {
 // - If found: erase from vector (DON'T delete - ownership transferred)
 //
 void Room::removeItem(const std::string& item_name) {
-    // TODO: Find and remove item from room
+    if (items.empty()) {
+        return;
+    }
+
+    // Lowercase target for case-insensitive comparison
+    std::string lower_target = item_name;
+    std::transform(lower_target.begin(), lower_target.end(),
+                   lower_target.begin(), ::tolower);
+
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        std::string lower_item = items[i]->getName();
+        std::transform(lower_item.begin(), lower_item.end(),
+                       lower_item.begin(), ::tolower);
+
+        if (lower_item == lower_target) {
+            // DO NOT delete here — ownership has been transferred
+            items.erase(items.begin() + i);
+            return;
+        }
+    }
 }
+
 
 
 // TODO: Implement displayItems
@@ -116,8 +208,11 @@ void Room::removeItem(const std::string& item_name) {
 // - Format: "  - ItemName"
 //
 void Room::displayItems() const {
-    // TODO: Display all items in room
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        std::cout << "  - " << items[i]->getName() << std::endl;
+    }
 }
+
 
 
 // TODO: Implement getItem
@@ -127,6 +222,20 @@ void Room::displayItems() const {
 // - If not found, return NULL
 //
 Item* Room::getItem(const std::string& item_name) {
-    // TODO: Find and return item pointer
-    return NULL;  // REPLACE THIS
+    std::string lower_target = item_name;
+    std::transform(lower_target.begin(), lower_target.end(),
+                   lower_target.begin(), ::tolower);
+
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        std::string lower_item = items[i]->getName();
+        std::transform(lower_item.begin(), lower_item.end(),
+                       lower_item.begin(), ::tolower);
+
+        if (lower_item == lower_target) {
+            return items[i];
+        }
+    }
+
+    return NULL;
 }
+
